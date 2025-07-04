@@ -7,11 +7,14 @@ def main():
     window.setWindowTitle("Youtube Downloader")
     window.setGeometry(100, 100, 800, 600)
     layout = QVBoxLayout()
-
     layout_file.create_layout(layout) 
+    
+    container = QWidget()
+    container.setLayout(layout)
 
-    window.setCentralWidget(QWidget())
-    window.centralWidget().setLayout(layout)
+    
+
+    window.setCentralWidget(container)
     window.show()
     app.exec_()
 

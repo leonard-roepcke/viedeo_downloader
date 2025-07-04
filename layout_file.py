@@ -1,8 +1,37 @@
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QHBoxLayout
-def create_layout(layout):
-    layout_2 = QHBoxLayout()
-    layout_2.addWidget(QPushButton("Hi"))
-    layout_2.addWidget(QPushButton("Hello"))
+from PyQt5.QtWidgets import (
+    QHBoxLayout,
+    QVBoxLayout,
+    QPushButton,
+    QLineEdit,
+    QSizePolicy,
+    QWidget,
+    QLabel
+)
 
-    layout.addLayout(layout_2)
-    layout.addWidget(QPushButton("Hi"))
+def create_layout(layout):
+    # Oberer Streifen (Suchleiste + Button)
+    top_layout = QHBoxLayout()
+
+    # Eingabefeld für YouTube-Link
+    link_input = QLineEdit()
+    link_input.setPlaceholderText("YouTube-Link hier einfügen...")
+    link_input.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+    # Download-Button
+    download_button = QPushButton("Download")
+    download_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+
+    top_layout.addWidget(link_input)
+    top_layout.addWidget(download_button)
+
+    # Unterer Bereich (Platzhalter)
+    bottom_layout = QVBoxLayout()
+    placeholder = QLabel("Hier kommt später dein Download-Status hin.")
+    placeholder.setStyleSheet("color: gray;")
+    bottom_layout.addStretch()
+    bottom_layout.addWidget(placeholder)
+    bottom_layout.addStretch()
+
+    # Gesamtlayout zusammensetzen
+    layout.addLayout(top_layout, stretch=0)   # Oberer Streifen nimmt so viel Platz wie nötig
+    layout.addLayout(bottom_layout, stretch=1)  # Unterer Teil füllt den Rest
