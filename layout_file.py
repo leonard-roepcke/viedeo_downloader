@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import (
     QWidget,
     QLabel
 )
+import logic  # Importiere die Logik für den Download
 
 def create_layout(layout):
     # Oberer Streifen (Suchleiste + Button)
@@ -20,6 +21,7 @@ def create_layout(layout):
     # Download-Button
     download_button = QPushButton("Download")
     download_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+    download_button.clicked.connect(lambda: logic.start_download(logic.clean_youtube_url(link_input.text())))
 
     top_layout.addWidget(link_input)
     top_layout.addWidget(download_button)
