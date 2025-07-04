@@ -4,19 +4,26 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QLineEdit,
     QSizePolicy,
-    QLabel
+    QLabel,
+    QWidget,
+    QScrollArea,
+    QSpacerItem
 )
 import os
 import subprocess
-import logic  # deine Logik
+import logic
+from threads import DownloadThread
+threads = []
 
-# Wir speichern das Layout global, damit du es immer wieder updaten kannst
+
+# global merken
 bottom_layout = None
+scroll_content = None
 
 def create_layout(layout):
-    global bottom_layout  # wichtig: global merken!
+    global bottom_layout, scroll_content
 
-    # Oberer Streifen (Suchleiste + Button)
+    # Oberer Streifen
     top_layout = QHBoxLayout()
 
     link_input = QLineEdit()
@@ -32,28 +39,34 @@ def create_layout(layout):
     top_layout.addWidget(link_input)
     top_layout.addWidget(download_button)
 
-    # Unterer Bereich (initial leer, wird später befüllt)
-    bottom_layout = QVBoxLayout()
-
-    # Gesamtlayout zusammensetzen
     layout.addLayout(top_layout, stretch=0)
-    layout.addLayout(bottom_layout, stretch=1)
 
-    # Erste Befüllung
+    # Unterer Bereich mit Scroll
+    scroll = QScrollArea()
+    scroll.setWidgetResizable(True)
+
+    scroll_content = QWidget()
+    bottom_layout = QVBoxLayout(scroll_content)
+
+    scroll.setWidget(scroll_content)
+
+    layout.addWidget(scroll, stretch=1)
+
     update_video_list()
 
+
 def update_video_list():
-    global bottom_layout
+    global bottom_layout, scroll_content
 
-    # Vorherige Widgets entfernen
-    while bottom_layout.count():
-        child = bottom_layout.takeAt(0)
-        if child.widget():
-            child.widget().deleteLater()
-        elif child.layout():
-            clear_layout(child.layout())
+    # Alte Einträge löschen
+    for i in reversed(range(bottom_layout.count())):
+        item = bottom_layout.takeAt(i)
+        widget = item.widget()
+        if widget:
+            widget.deleteLater()
+        elif item.layout():
+            clear_layout(item.layout())
 
-    # Neuen Inhalt aufbauen
     dir_path = os.path.dirname(os.path.abspath(__file__))
     videos_path = os.path.join(dir_path, "videos")
     os.makedirs(videos_path, exist_ok=True)
@@ -69,16 +82,24 @@ def update_video_list():
             file_layout = QHBoxLayout()
 
             label = QLabel(filename)
+
             open_button = QPushButton("Open")
+            open_button.setFixedWidth(80)
 
             open_button.clicked.connect(
                 lambda checked, f=filename: subprocess.Popen(["xdg-open", os.path.join(videos_path, f)])
             )
 
             file_layout.addWidget(label)
+            file_layout.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
             file_layout.addWidget(open_button)
 
-            bottom_layout.addLayout(file_layout)
+            container = QWidget()
+            container.setLayout(file_layout)
+            bottom_layout.addWidget(container)
+
+    bottom_layout.addStretch()  # schöner Abschluss
+
 
 def clear_layout(layout):
     while layout.count():
@@ -88,8 +109,16 @@ def clear_layout(layout):
         elif child.layout():
             clear_layout(child.layout())
 
-# Hilfsfunktion: Download + Liste aktualisieren
+
 def start_download_and_update(link):
     clean_link = logic.clean_youtube_url(link)
-    logic.start_download(clean_link)
-    update_video_list()
+    dir_path = os.path.dirname(os.path.abspath(__file__))
+    videos_path = os.path.join(dir_path, "videos")
+    os.makedirs(videos_path, exist_ok=True)
+
+    thread = DownloadThread(clean_link, videos_path)
+    thread.finished.connect(update_video_list)
+
+    threads.append(thread)  
+
+    thread.start()
