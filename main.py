@@ -4,6 +4,8 @@ import layout_file
 def main():
     app = QApplication([])
     window = QMainWindow()
+    window.setWindowTitle("Youtube Downloader")
+    window.setGeometry(100, 100, 800, 600)
     layout = QVBoxLayout()
 
     layout_file.create_layout(layout) 
