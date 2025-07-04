@@ -2,6 +2,8 @@ import yt_dlp
 import os
 from urllib.parse import urlparse, parse_qs
 
+import layout_file
+
 def clean_youtube_url(url):
     parsed = urlparse(url)
     query = parse_qs(parsed.query)
@@ -31,3 +33,5 @@ def start_download(link):
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([link])
+    
+    layout_file.update_video_list()
